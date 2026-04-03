@@ -1358,7 +1358,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 815
+  m_VersionIndex: 824
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -1762,7 +1762,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e70a54fb2280454f8c4caf32049a399, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
+  pushForce: 8
+  maxSpeed: 6
+  friction: 4
+  pushCooldown: 0.6
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -3125,7 +3128,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 815
+  m_VersionIndex: 824
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -3428,7 +3431,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 760
+  m_VersionIndex: 769
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -4696,7 +4699,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 815
+  m_VersionIndex: 824
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -4866,6 +4869,12 @@ MonoBehaviour:
   rotationTorque: 5
   lookSensitivity: 2
   cameraResetSpeed: 5
+  playerCamera: {fileID: 6010255665800160990}
+  baseFOV: 60
+  maxFOV: 80
+  fovChangeSpeed: 5
+  swayAmount: 2
+  swaySpeed: 3
 --- !u!1 &4384229976015473578
 GameObject:
   m_ObjectHideFlags: 0
@@ -6278,7 +6287,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 815
+  m_VersionIndex: 824
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []

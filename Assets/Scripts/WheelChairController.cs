@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class WheelChairController : MonoBehaviour
 {
@@ -28,6 +29,25 @@ public class WheelChairController : MonoBehaviour
     private bool isResettingCamera = false;
     private Quaternion targetCameraRotation;
 
+    [Header("FOV Effects")]
+    public Camera playerCamera;
+    public float baseFOV = 60f;
+    public float maxFOV = 80f;
+    public float fovChangeSpeed = 5f;
+    private float targetFOV;
+
+    [Header("Sway Effects")]
+    public float swayAmount = 2f;
+    public float swaySpeed = 3f;
+    private float swayAngle = 0f;
+
+    [Header("UI")]
+    public TextMeshProUGUI resetPromptText;
+    public float promptFadeSpeed = 3f;
+    public float promptDelayTime = 2f;
+    private float promptDelayTimer = 0f;
+    private bool showPromptDelayed = false;
+
     private Rigidbody rb;
     private float currentForwardSpeed = 0f;
     private float targetTurnDirection = 0f; 
@@ -52,6 +72,21 @@ public class WheelChairController : MonoBehaviour
             
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+        }
+
+        if (playerCamera == null && cameraTransform != null)
+            playerCamera = cameraTransform.GetComponent<Camera>();
+        
+        if (playerCamera != null)
+        {
+            baseFOV = playerCamera.fieldOfView;
+            targetFOV = baseFOV;
+        }
+
+        if (resetPromptText != null)
+        {
+            resetPromptText.text = "Press R to Reset Camera";
+            resetPromptText.alpha = 0f;
         }
     }
 
@@ -105,6 +140,17 @@ public class WheelChairController : MonoBehaviour
         Vector3 forwardVelocity = transform.forward * currentForwardSpeed;
         Vector3 lateralVelocity = transform.right * Vector3.Dot(rb.velocity, transform.right) * driftFactor;
         rb.velocity = new Vector3(forwardVelocity.x + lateralVelocity.x, rb.velocity.y, forwardVelocity.z + lateralVelocity.z);
+
+        float speedNormalized = currentForwardSpeed / maxForwardSpeed;
+        
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+        {
+            targetFOV = Mathf.Lerp(baseFOV, maxFOV, speedNormalized);
+        }
+        else
+        {
+            targetFOV = Mathf.Lerp(targetFOV, baseFOV, fovChangeSpeed * Time.fixedDeltaTime * 2f);
+        }
     }
 
     void Update()
@@ -134,6 +180,8 @@ public class WheelChairController : MonoBehaviour
         {
             targetCameraRotation = Quaternion.Euler(0f, cameraTransform.eulerAngles.y, 0f);
             isResettingCamera = true;
+            showPromptDelayed = false;
+            promptDelayTimer = 0f;
         }
 
         if (isResettingCamera && cameraTransform != null)
@@ -145,6 +193,59 @@ public class WheelChairController : MonoBehaviour
                 cameraTransform.rotation = targetCameraRotation;
                 isResettingCamera = false;
             }
+        }
+
+        if (playerCamera != null)
+        {
+            playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, targetFOV, fovChangeSpeed * Time.deltaTime);
+        }
+
+        bool isTurning = Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D);
+        float currentSpeedNormalized = currentForwardSpeed / maxForwardSpeed;
+        
+        if (isTurning && currentSpeedNormalized > 0.1f)
+        {
+            float turnDirection = 0f;
+            if (Input.GetKey(KeyCode.A)) turnDirection = -1f;
+            if (Input.GetKey(KeyCode.D)) turnDirection = 1f;
+            
+            swayAngle = Mathf.Sin(Time.time * swaySpeed * currentSpeedNormalized) * swayAmount * currentSpeedNormalized * turnDirection;
+            
+            if (cameraTransform != null && !cameraThrown)
+            {
+                Vector3 localPos = cameraTransform.localPosition;
+                localPos.x = swayAngle * 0.02f;
+                cameraTransform.localPosition = localPos;
+            }
+        }
+        else
+        {
+            if (cameraTransform != null && !cameraThrown)
+            {
+                Vector3 localPos = cameraTransform.localPosition;
+                localPos.x = Mathf.Lerp(localPos.x, 0f, Time.deltaTime * 5f);
+                cameraTransform.localPosition = localPos;
+            }
+        }
+
+        if (resetPromptText != null)
+        {
+            if (cameraThrown && !isResettingCamera && !showPromptDelayed)
+            {
+                promptDelayTimer += Time.deltaTime;
+                if (promptDelayTimer >= promptDelayTime)
+                {
+                    showPromptDelayed = true;
+                }
+            }
+            else if (!cameraThrown || isResettingCamera)
+            {
+                promptDelayTimer = 0f;
+                showPromptDelayed = false;
+            }
+
+            float targetAlpha = (cameraThrown && !isResettingCamera && showPromptDelayed) ? 1f : 0f;
+            resetPromptText.alpha = Mathf.Lerp(resetPromptText.alpha, targetAlpha, promptFadeSpeed * Time.deltaTime);
         }
     }
 
@@ -178,6 +279,8 @@ public class WheelChairController : MonoBehaviour
                 cameraRigidbody.AddTorque(randomTorque, ForceMode.VelocityChange);
 
                 cameraThrown = true;
+                showPromptDelayed = false;
+                promptDelayTimer = 0f;
             }
         }
     }
@@ -193,7 +296,17 @@ public class WheelChairController : MonoBehaviour
         currentTurnSpeed = 0f;
         forwardHoldTimer = 0f;
         
+        if (playerCamera != null)
+            targetFOV = baseFOV;
+        
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        if (resetPromptText != null)
+        {
+            resetPromptText.alpha = 0f;
+            showPromptDelayed = false;
+            promptDelayTimer = 0f;
+        }
     }
 }
