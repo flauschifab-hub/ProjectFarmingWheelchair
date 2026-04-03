@@ -86,13 +86,7 @@ public class CameraReattachment : MonoBehaviour
         if (wheelchairController != null)
         {
             wheelchairController.ReenableControl();
-        }
-        else
-        {
-            Debug.LogWarning("WheelChairController reference is missing! Camera reattached but wheelchair controls may not work.");
-        }
-        
-        Debug.Log("Camera reattached to wheelchair! Controls restored.");
+        }     
     }
         void OnDrawGizmosSelected()
     {

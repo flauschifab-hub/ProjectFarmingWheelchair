@@ -195,7 +195,5 @@ public class WheelChairController : MonoBehaviour
         
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        
-        Debug.Log("Wheelchair control re-enabled!");
     }
 }
