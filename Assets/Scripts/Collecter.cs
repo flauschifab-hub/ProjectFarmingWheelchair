@@ -3,32 +3,35 @@ using TMPro;
 
 public class Collecter : MonoBehaviour
 {
-    //[Header("Audio")]
-    //public AudioSource landSource;     // Landing Sound
-   // public AudioSource collectSource;  // Collect Sound
-   [SerializeField] Timer timer;
+    public TextMeshProUGUI weedText;
 
     private int package = 0;
-    public TextMeshProUGUI WeedText;
 
-    
-    void OnCollisionEnter(Collision other)
+    private void OnTriggerStay(Collider other)
     {
-    Debug.Log("Collision erkannt: " + other.gameObject.name);
+        if (!other.CompareTag("Grow")) return;
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            WeedGrow grow = other.GetComponent<WeedGrow>();
+
+            if (grow == null) return;
+
+        
+            if (!grow.IsReady() && !grow.IsGrowing())
+            {
+                grow.StartGrow();
+                return;
+            }
+
+          
+            if (grow.IsReady())
+            {
+                package++;
+                weedText.text = "Weed: " + package;
+
+                grow.Harvest();
+            }
+        }
     }
-    
-    private void OnTriggerEnter(Collider other)
-    {
-    if (other.CompareTag("Weed"))
-    {
-        Debug.Log("Weed eingesammelt");
-
-        package++;
-        WeedText.text = "Weed: " + package;
-
-        timer.AddTime(30f);
-
-        Destroy(other.gameObject);
-    }
-}
 }
