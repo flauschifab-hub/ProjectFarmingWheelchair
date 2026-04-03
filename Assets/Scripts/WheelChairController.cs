@@ -16,14 +16,17 @@ public class WheelChairController : MonoBehaviour
     public float collisionForceMultiplier = 0.5f; 
     public float flingMultiplier = 2f;           
     public float rotationTorque = 5f;
-    public float xResetDelay = 3f;
-    public float xResetSpeed = 90f;
 
     [Header("Camera Look")]
     public float lookSensitivity = 2f;
     private Transform cameraTransform;
     private float pitch = 0f;
     private float yaw = 0f;
+
+    [Header("Camera Reset")]
+    public float cameraResetSpeed = 5f;
+    private bool isResettingCamera = false;
+    private Quaternion targetCameraRotation;
 
     private Rigidbody rb;
     private float currentForwardSpeed = 0f;
@@ -32,8 +35,7 @@ public class WheelChairController : MonoBehaviour
     private float forwardHoldTimer = 0f;
     private bool controlEnabled = true;
 
-    private float xResetTimer = 0f;
-    private bool startXReset = false;
+    private bool cameraThrown = false;
 
     void Start()
     {
@@ -44,14 +46,12 @@ public class WheelChairController : MonoBehaviour
         if (cameraRigidbody != null)
             cameraRigidbody.isKinematic = true;
 
-        if (cameraRigidbody != null && cameraRigidbody.transform.IsChildOf(transform))
+        if (cameraRigidbody != null)
         {
             cameraTransform = cameraRigidbody.transform;
+            
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
-
-            yaw = cameraTransform.eulerAngles.y;
-            pitch = cameraTransform.localEulerAngles.x;
         }
     }
 
@@ -105,34 +105,46 @@ public class WheelChairController : MonoBehaviour
         Vector3 forwardVelocity = transform.forward * currentForwardSpeed;
         Vector3 lateralVelocity = transform.right * Vector3.Dot(rb.velocity, transform.right) * driftFactor;
         rb.velocity = new Vector3(forwardVelocity.x + lateralVelocity.x, rb.velocity.y, forwardVelocity.z + lateralVelocity.z);
-
-        if (startXReset && cameraRigidbody != null)
-        {
-            xResetTimer += Time.fixedDeltaTime;
-            if (xResetTimer >= xResetDelay)
-            {
-                Vector3 camEuler = cameraRigidbody.rotation.eulerAngles;
-                float x = camEuler.x;
-                if (x > 180f) x -= 360f;
-                float newX = Mathf.MoveTowards(x, 0f, xResetSpeed * Time.fixedDeltaTime);
-                cameraRigidbody.rotation = Quaternion.Euler(newX, camEuler.y, camEuler.z);
-            }
-        }
     }
 
     void Update()
     {
-        if (cameraTransform != null && controlEnabled)
+        if (cameraTransform != null && !isResettingCamera)
         {
             float mouseX = Input.GetAxis("Mouse X") * lookSensitivity;
             float mouseY = Input.GetAxis("Mouse Y") * lookSensitivity;
+            
+            if (!cameraThrown)
+            {
+                yaw += mouseX;
+                pitch -= mouseY;
+                pitch = Mathf.Clamp(pitch, -90f, 90f);
+                
+                cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+                cameraTransform.parent.rotation = Quaternion.Euler(0f, yaw, 0f);
+            }
+            else
+            {
+                cameraTransform.Rotate(Vector3.up, mouseX, Space.World);
+                cameraTransform.Rotate(Vector3.right, -mouseY, Space.Self);
+            }
+        }
 
-            yaw += mouseX;
-            pitch -= mouseY;
-            pitch = Mathf.Clamp(pitch, -90f, 90f);
+        if (cameraThrown && cameraRigidbody != null && Input.GetKeyDown(KeyCode.R) && !isResettingCamera)
+        {
+            targetCameraRotation = Quaternion.Euler(0f, cameraTransform.eulerAngles.y, 0f);
+            isResettingCamera = true;
+        }
 
-            cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
-            cameraTransform.parent.rotation = Quaternion.Euler(0f, yaw, 0f);
+        if (isResettingCamera && cameraTransform != null)
+        {
+            cameraTransform.rotation = Quaternion.Slerp(cameraTransform.rotation, targetCameraRotation, cameraResetSpeed * Time.deltaTime);
+            
+            if (Quaternion.Angle(cameraTransform.rotation, targetCameraRotation) < 0.1f)
+            {
+                cameraTransform.rotation = targetCameraRotation;
+                isResettingCamera = false;
+            }
         }
     }
 
@@ -151,6 +163,7 @@ public class WheelChairController : MonoBehaviour
 
             if (cameraRigidbody != null)
             {
+                cameraTransform.parent = null;
                 cameraRigidbody.isKinematic = false;
 
                 Vector3 flingForce = transform.forward * wheelchairVelocity.magnitude * collisionForceMultiplier * flingMultiplier;
@@ -164,9 +177,25 @@ public class WheelChairController : MonoBehaviour
                 );
                 cameraRigidbody.AddTorque(randomTorque, ForceMode.VelocityChange);
 
-                xResetTimer = 0f;
-                startXReset = true;
+                cameraThrown = true;
             }
         }
+    }
+
+    public void ReenableControl()
+    {
+        controlEnabled = true;
+        cameraThrown = false;
+        pitch = 0f;
+        yaw = cameraTransform.parent.eulerAngles.y;
+        
+        currentForwardSpeed = 0f;
+        currentTurnSpeed = 0f;
+        forwardHoldTimer = 0f;
+        
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        
+        Debug.Log("Wheelchair control re-enabled!");
     }
 }

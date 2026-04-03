@@ -2034,6 +2034,7 @@ GameObject:
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
   - component: {fileID: 330585549}
+  - component: {fileID: 330585550}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -2207,6 +2208,23 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &330585550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e70a54fb2280454f8c4caf32049a399, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 5
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  groundCheckDistance: 1.1
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -2659,6 +2677,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 429495158}
+  - component: {fileID: 429495159}
   m_Layer: 0
   m_Name: MainCameraPos
   m_TagString: Untagged
@@ -2682,6 +2701,27 @@ Transform:
   - {fileID: 330585546}
   m_Father: {fileID: 500675253}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &429495159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 429495157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 391699b17f60e654ab69770105c53e26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameraObject: {fileID: 330585543}
+  cameraPos: {fileID: 429495158}
+  wheelchairController: {fileID: 500675256}
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  reattachKey: 101
+  checkRadius: 0.5
+  requireGroundContact: 1
 --- !u!1 &443028969
 GameObject:
   m_ObjectHideFlags: 0
@@ -4390,9 +4430,8 @@ MonoBehaviour:
   collisionForceMultiplier: 8
   flingMultiplier: 8
   rotationTorque: 5
-  xResetDelay: 3
-  xResetSpeed: 90
   lookSensitivity: 2
+  cameraResetSpeed: 5
 --- !u!1 &634970391
 GameObject:
   m_ObjectHideFlags: 0
@@ -4421,7 +4460,7 @@ Transform:
   m_GameObject: {fileID: 634970391}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0.7071068, z: -0, w: 0}
-  m_LocalPosition: {x: -0.37, y: -0.8720002, z: 2.1510005}
+  m_LocalPosition: {x: -0.37, y: -1.2160003, z: 2.1510005}
   m_LocalScale: {x: 0.26638007, y: 0.26638007, z: 0.26638013}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7864,7 +7903,7 @@ Transform:
   m_GameObject: {fileID: 945175229}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0.7071068, z: -0, w: 0}
-  m_LocalPosition: {x: -1.1760001, y: -0.8720002, z: 2.1510005}
+  m_LocalPosition: {x: -1.1760001, y: -1.216, z: 2.1510005}
   m_LocalScale: {x: 0.26638007, y: 0.26638007, z: 0.26638013}
   m_ConstrainProportionsScale: 0
   m_Children: []
