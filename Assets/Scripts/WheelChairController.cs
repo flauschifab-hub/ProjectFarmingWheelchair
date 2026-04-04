@@ -13,6 +13,15 @@ public class WheelChairController : MonoBehaviour
     public float maxForwardHoldTime = 3f;
     public Transform forwardDirectionReference;
 
+    [Header("Braking")]
+    public float brakeDeceleration = 8f;
+    public float reverseSpeed = -3f;
+    public float reverseAcceleration = 5f;
+
+    [Header("Dual Push Stacking")]
+    public float dualPushSpeedMultiplier = 2f;
+    public float dualPushAccelerationMultiplier = 3f;
+
     [Header("Collision")]
     public Rigidbody cameraRigidbody; 
     public float collisionForceMultiplier = 0.5f; 
@@ -55,7 +64,6 @@ public class WheelChairController : MonoBehaviour
     private float currentTurnSpeed = 0f;
     private float forwardHoldTimer = 0f;
     private bool controlEnabled = true;
-
     private bool cameraThrown = false;
 
     void Start()
@@ -97,16 +105,37 @@ public class WheelChairController : MonoBehaviour
 
         bool pressingLeft = Input.GetKey(KeyCode.A);
         bool pressingRight = Input.GetKey(KeyCode.D);
+        bool pressingBoth = pressingLeft && pressingRight;
+        bool pressingOnlyOne = (pressingLeft || pressingRight) && !pressingBoth;
+        bool pressingBrake = Input.GetKey(KeyCode.S);
 
         Vector3 forwardDir = forwardDirectionReference != null ? forwardDirectionReference.forward : transform.forward;
 
-        if (pressingLeft && pressingRight)
+        if (pressingBrake)
+        {
+            forwardHoldTimer = 0f;
+            currentTurnSpeed = 0f;
+            
+            if (currentForwardSpeed > 0)
+            {
+                currentForwardSpeed -= brakeDeceleration * Time.fixedDeltaTime;
+                if (currentForwardSpeed < 0) currentForwardSpeed = 0;
+            }
+            else if (currentForwardSpeed <= 0 && pressingBrake)
+            {
+                currentForwardSpeed -= reverseAcceleration * Time.fixedDeltaTime;
+                currentForwardSpeed = Mathf.Clamp(currentForwardSpeed, reverseSpeed, 0);
+            }
+        }
+        else if (pressingBoth)
         {
             forwardHoldTimer += Time.fixedDeltaTime;
+            
+            float currentAcceleration = forwardAcceleration * dualPushAccelerationMultiplier;
+            
             if (forwardHoldTimer <= maxForwardHoldTime)
             {
-                currentForwardSpeed += forwardAcceleration * Time.fixedDeltaTime;
-                currentForwardSpeed = Mathf.Clamp(currentForwardSpeed, 0f, maxForwardSpeed);
+                currentForwardSpeed += currentAcceleration * Time.fixedDeltaTime;
             }
             else
             {
@@ -115,22 +144,33 @@ public class WheelChairController : MonoBehaviour
             }
             currentTurnSpeed = 0f;
         }
+        else if (pressingOnlyOne)
+        {
+            forwardHoldTimer = 0f;
+            
+            if (pressingLeft)
+            {
+                currentTurnSpeed = -turnSpeed;
+                if (currentForwardSpeed >= 0)
+                {
+                    currentForwardSpeed += forwardAcceleration * 0.5f * Time.fixedDeltaTime;
+                }
+            }
+            else if (pressingRight)
+            {
+                currentTurnSpeed = turnSpeed;
+                if (currentForwardSpeed >= 0)
+                {
+                    currentForwardSpeed += forwardAcceleration * 0.5f * Time.fixedDeltaTime;
+                }
+            }
+        }
         else
         {
             forwardHoldTimer = 0f;
-            if (pressingLeft && !pressingRight)
+            currentTurnSpeed = Mathf.Lerp(currentTurnSpeed, 0f, turnLerpSpeed * Time.fixedDeltaTime);
+            if (currentForwardSpeed > 0)
             {
-                currentTurnSpeed = -turnSpeed;
-                currentForwardSpeed *= 0.95f;
-            }
-            else if (pressingRight && !pressingLeft)
-            {
-                currentTurnSpeed = turnSpeed;
-                currentForwardSpeed *= 0.95f;
-            }
-            else
-            {
-                currentTurnSpeed = Mathf.Lerp(currentTurnSpeed, 0f, turnLerpSpeed * Time.fixedDeltaTime);
                 currentForwardSpeed -= deceleration * Time.fixedDeltaTime;
                 if (currentForwardSpeed < 0f) currentForwardSpeed = 0f;
             }
@@ -146,9 +186,9 @@ public class WheelChairController : MonoBehaviour
         Vector3 lateralVelocity = rightDir * Vector3.Dot(rb.velocity, rightDir) * driftFactor;
         rb.velocity = new Vector3(forwardVelocity.x + lateralVelocity.x, rb.velocity.y, forwardVelocity.z + lateralVelocity.z);
 
-        float speedNormalized = currentForwardSpeed / maxForwardSpeed;
+        float speedNormalized = Mathf.Clamp01(Mathf.Abs(currentForwardSpeed) / maxForwardSpeed);
         
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+        if (pressingLeft || pressingRight || pressingBrake)
         {
             targetFOV = Mathf.Lerp(baseFOV, maxFOV, speedNormalized);
         }
@@ -206,9 +246,9 @@ public class WheelChairController : MonoBehaviour
         }
 
         bool isTurning = Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D);
-        float currentSpeedNormalized = currentForwardSpeed / maxForwardSpeed;
+        float currentSpeedNormalized = Mathf.Clamp01(Mathf.Abs(currentForwardSpeed) / maxForwardSpeed);
         
-        if (isTurning && currentSpeedNormalized > 0.1f)
+        if (isTurning && currentSpeedNormalized > 0.1f && currentForwardSpeed > 0)
         {
             float turnDirection = 0f;
             if (Input.GetKey(KeyCode.A)) turnDirection = -1f;
