@@ -8,19 +8,21 @@ public class Collecter : MonoBehaviour
 
     private int package = 0;
 
+    public void AddWeed()
+    {
+        package++;
+        WeedText.text = "Weed: " + package;
+        timer.AddTime(30f);
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Weed"));
+        if (other.CompareTag("Weed"))
         {
-            Debug.Log("Collision with the Player");
-            package++;
-            WeedText.text = "Weed: " + package;
-            timer.AddTime(30f);
+            Debug.Log("Normales Weed eingesammelt");
 
-
+            AddWeed();
             Destroy(other.gameObject);
         }
-
-         
     }
 }
