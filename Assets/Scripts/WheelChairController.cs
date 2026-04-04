@@ -11,6 +11,7 @@ public class WheelChairController : MonoBehaviour
     public float turnLerpSpeed = 5f; 
     public float driftFactor = 0.1f;
     public float maxForwardHoldTime = 3f;
+    public Transform forwardDirectionReference;
 
     [Header("Collision")]
     public Rigidbody cameraRigidbody; 
@@ -97,6 +98,8 @@ public class WheelChairController : MonoBehaviour
         bool pressingLeft = Input.GetKey(KeyCode.A);
         bool pressingRight = Input.GetKey(KeyCode.D);
 
+        Vector3 forwardDir = forwardDirectionReference != null ? forwardDirectionReference.forward : transform.forward;
+
         if (pressingLeft && pressingRight)
         {
             forwardHoldTimer += Time.fixedDeltaTime;
@@ -110,35 +113,37 @@ public class WheelChairController : MonoBehaviour
                 currentForwardSpeed -= deceleration * Time.fixedDeltaTime;
                 if (currentForwardSpeed < 0f) currentForwardSpeed = 0f;
             }
-            targetTurnDirection = 0f;
+            currentTurnSpeed = 0f;
         }
         else
         {
-            forwardHoldTimer = 0f; 
+            forwardHoldTimer = 0f;
             if (pressingLeft && !pressingRight)
             {
-                targetTurnDirection = -1f;
-                currentForwardSpeed *= 0.95f; 
+                currentTurnSpeed = -turnSpeed;
+                currentForwardSpeed *= 0.95f;
             }
             else if (pressingRight && !pressingLeft)
             {
-                targetTurnDirection = 1f;
+                currentTurnSpeed = turnSpeed;
                 currentForwardSpeed *= 0.95f;
             }
             else
             {
-                targetTurnDirection = 0f;
+                currentTurnSpeed = Mathf.Lerp(currentTurnSpeed, 0f, turnLerpSpeed * Time.fixedDeltaTime);
                 currentForwardSpeed -= deceleration * Time.fixedDeltaTime;
                 if (currentForwardSpeed < 0f) currentForwardSpeed = 0f;
             }
         }
 
-        float targetTurnSpeed = targetTurnDirection * turnSpeed;
-        currentTurnSpeed = Mathf.Lerp(currentTurnSpeed, targetTurnSpeed, turnLerpSpeed * Time.fixedDeltaTime);
-        rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, currentTurnSpeed * Time.fixedDeltaTime, 0f));
+        if (Mathf.Abs(currentTurnSpeed) > 0.01f && forwardDirectionReference != null)
+        {
+            transform.RotateAround(forwardDirectionReference.position, Vector3.up, currentTurnSpeed * Time.fixedDeltaTime);
+        }
 
-        Vector3 forwardVelocity = transform.forward * currentForwardSpeed;
-        Vector3 lateralVelocity = transform.right * Vector3.Dot(rb.velocity, transform.right) * driftFactor;
+        Vector3 forwardVelocity = forwardDir * currentForwardSpeed;
+        Vector3 rightDir = Vector3.Cross(Vector3.up, forwardDir).normalized;
+        Vector3 lateralVelocity = rightDir * Vector3.Dot(rb.velocity, rightDir) * driftFactor;
         rb.velocity = new Vector3(forwardVelocity.x + lateralVelocity.x, rb.velocity.y, forwardVelocity.z + lateralVelocity.z);
 
         float speedNormalized = currentForwardSpeed / maxForwardSpeed;
