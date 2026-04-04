@@ -22,6 +22,12 @@ public class WheelChairController : MonoBehaviour
     public float dualPushSpeedMultiplier = 2f;
     public float dualPushAccelerationMultiplier = 3f;
 
+    [Header("Wheel Rotation")]
+    public Transform leftWheel;
+    public Transform rightWheel;
+    public float wheelRotationSpeed = 360f;
+    public float reverseRotationMultiplier = -1f;
+
     [Header("Collision")]
     public Rigidbody cameraRigidbody; 
     public float collisionForceMultiplier = 0.5f; 
@@ -60,11 +66,11 @@ public class WheelChairController : MonoBehaviour
 
     private Rigidbody rb;
     private float currentForwardSpeed = 0f;
-    private float targetTurnDirection = 0f; 
     private float currentTurnSpeed = 0f;
     private float forwardHoldTimer = 0f;
     private bool controlEnabled = true;
     private bool cameraThrown = false;
+    private float wheelRotationAccumulator = 0f;
 
     void Start()
     {
@@ -111,6 +117,8 @@ public class WheelChairController : MonoBehaviour
 
         Vector3 forwardDir = forwardDirectionReference != null ? forwardDirectionReference.forward : transform.forward;
 
+        float previousSpeed = currentForwardSpeed;
+
         if (pressingBrake)
         {
             forwardHoldTimer = 0f;
@@ -151,19 +159,14 @@ public class WheelChairController : MonoBehaviour
             if (pressingLeft)
             {
                 currentTurnSpeed = -turnSpeed;
-                if (currentForwardSpeed >= 0)
-                {
-                    currentForwardSpeed += forwardAcceleration * 0.5f * Time.fixedDeltaTime;
-                }
             }
             else if (pressingRight)
             {
                 currentTurnSpeed = turnSpeed;
-                if (currentForwardSpeed >= 0)
-                {
-                    currentForwardSpeed += forwardAcceleration * 0.5f * Time.fixedDeltaTime;
-                }
             }
+            
+            currentForwardSpeed -= deceleration * Time.fixedDeltaTime;
+            if (currentForwardSpeed < 0f) currentForwardSpeed = 0f;
         }
         else
         {
@@ -174,6 +177,32 @@ public class WheelChairController : MonoBehaviour
                 currentForwardSpeed -= deceleration * Time.fixedDeltaTime;
                 if (currentForwardSpeed < 0f) currentForwardSpeed = 0f;
             }
+        }
+
+        float wheelRotationThisFrame = currentForwardSpeed * wheelRotationSpeed * Time.fixedDeltaTime;
+        if (currentForwardSpeed < 0)
+        {
+            wheelRotationThisFrame *= reverseRotationMultiplier;
+        }
+        
+        wheelRotationAccumulator += wheelRotationThisFrame;
+        
+        if (leftWheel != null)
+        {
+            float turnInfluence = 0f;
+            if (currentTurnSpeed < 0) turnInfluence = -15f;
+            if (currentTurnSpeed > 0) turnInfluence = 15f;
+            
+            leftWheel.localRotation = Quaternion.Euler(0, turnInfluence, wheelRotationAccumulator);
+        }
+        
+        if (rightWheel != null)
+        {
+            float turnInfluence = 0f;
+            if (currentTurnSpeed < 0) turnInfluence = -15f;
+            if (currentTurnSpeed > 0) turnInfluence = 15f;
+            
+            rightWheel.localRotation = Quaternion.Euler(0, turnInfluence, -wheelRotationAccumulator);
         }
 
         if (Mathf.Abs(currentTurnSpeed) > 0.01f && forwardDirectionReference != null)
