@@ -3,35 +3,24 @@ using TMPro;
 
 public class Collecter : MonoBehaviour
 {
-    public TextMeshProUGUI weedText;
+    public TextMeshProUGUI WeedText;
+    [SerializeField] Timer timer;
 
     private int package = 0;
 
-    private void OnTriggerStay(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag("Grow")) return;
-
-        if (Input.GetKeyDown(KeyCode.E))
+        if (other.CompareTag("Weed"));
         {
-            WeedGrow grow = other.GetComponent<WeedGrow>();
+            Debug.Log("Collision with the Player");
+            package++;
+            WeedText.text = "Weed: " + package;
+            timer.AddTime(30f);
 
-            if (grow == null) return;
 
-        
-            if (!grow.IsReady() && !grow.IsGrowing())
-            {
-                grow.StartGrow();
-                return;
-            }
-
-          
-            if (grow.IsReady())
-            {
-                package++;
-                weedText.text = "Weed: " + package;
-
-                grow.Harvest();
-            }
+            Destroy(other.gameObject);
         }
+
+         
     }
 }
