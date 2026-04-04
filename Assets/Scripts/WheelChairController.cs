@@ -40,6 +40,8 @@ public class WheelChairController : MonoBehaviour
     public float collisionForceMultiplier = 0.5f; 
     public float flingMultiplier = 2f;           
     public float rotationTorque = 5f;
+    public GameObject legs;
+    public GameObject legsHiddenAlternate; // New GameObject to enable when legs are hidden
 
     [Header("Camera Look")]
     public float lookSensitivity = 2f;
@@ -78,12 +80,15 @@ public class WheelChairController : MonoBehaviour
     private bool controlEnabled = true;
     private bool cameraThrown = false;
     private float wheelRotationAccumulator = 0f;
+    private Collider wheelchairCollider;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         if (rb == null)
             rb = gameObject.AddComponent<Rigidbody>();
+
+        wheelchairCollider = GetComponent<Collider>();
 
         if (cameraRigidbody != null)
             cameraRigidbody.isKinematic = true;
@@ -117,6 +122,12 @@ public class WheelChairController : MonoBehaviour
             var emission = speedParticleSystem.emission;
             emission.rateOverTime = 0f;
         }
+
+        if (legs != null)
+            legs.SetActive(true);
+        
+        if (legsHiddenAlternate != null)
+            legsHiddenAlternate.SetActive(false);
     }
 
     void FixedUpdate()
@@ -397,6 +408,29 @@ public class WheelChairController : MonoBehaviour
                 cameraThrown = true;
                 showPromptDelayed = false;
                 promptDelayTimer = 0f;
+
+                if (legs != null)
+                    legs.SetActive(false);
+                
+                if (legsHiddenAlternate != null)
+                    legsHiddenAlternate.SetActive(true);
+
+                if (wheelchairCollider != null)
+                    Physics.IgnoreCollision(cameraRigidbody.GetComponent<Collider>(), wheelchairCollider, true);
+            }
+        }
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        if (cameraThrown && cameraRigidbody != null && wheelchairCollider != null)
+        {
+            Collider cameraCollider = cameraRigidbody.GetComponent<Collider>();
+            if (cameraCollider != null && collision.collider == wheelchairCollider)
+            {
+                Vector3 pushDirection = (cameraRigidbody.position - transform.position).normalized;
+                pushDirection.y = 0.5f;
+                cameraRigidbody.AddForce(pushDirection * 5f, ForceMode.Impulse);
             }
         }
     }
@@ -431,6 +465,19 @@ public class WheelChairController : MonoBehaviour
             emission.rateOverTime = 0f;
             currentParticleEmissionRate = 0f;
             speedParticleSystem.Stop();
+        }
+
+        if (legs != null)
+            legs.SetActive(true);
+        
+        if (legsHiddenAlternate != null)
+            legsHiddenAlternate.SetActive(false);
+
+        if (cameraRigidbody != null && wheelchairCollider != null)
+        {
+            Collider cameraCollider = cameraRigidbody.GetComponent<Collider>();
+            if (cameraCollider != null)
+                Physics.IgnoreCollision(cameraCollider, wheelchairCollider, false);
         }
     }
 }
