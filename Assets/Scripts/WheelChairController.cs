@@ -22,6 +22,13 @@ public class WheelChairController : MonoBehaviour
     public float dualPushSpeedMultiplier = 2f;
     public float dualPushAccelerationMultiplier = 3f;
 
+    [Header("Particle Effects")]
+    public ParticleSystem speedParticleSystem;
+    public float speedThreshold = 8f;
+    public float particleFadeSpeed = 2f;
+    private float currentParticleEmissionRate = 0f;
+    private float originalEmissionRate = 0f;
+
     [Header("Wheel Rotation")]
     public Transform leftWheel;
     public Transform rightWheel;
@@ -103,6 +110,13 @@ public class WheelChairController : MonoBehaviour
             resetPromptText.text = "Press R to Reset Camera";
             resetPromptText.alpha = 0f;
         }
+
+        if (speedParticleSystem != null)
+        {
+            originalEmissionRate = speedParticleSystem.emission.rateOverTime.constant;
+            var emission = speedParticleSystem.emission;
+            emission.rateOverTime = 0f;
+        }
     }
 
     void FixedUpdate()
@@ -116,8 +130,6 @@ public class WheelChairController : MonoBehaviour
         bool pressingBrake = Input.GetKey(KeyCode.S);
 
         Vector3 forwardDir = forwardDirectionReference != null ? forwardDirectionReference.forward : transform.forward;
-
-        float previousSpeed = currentForwardSpeed;
 
         if (pressingBrake)
         {
@@ -224,6 +236,36 @@ public class WheelChairController : MonoBehaviour
         else
         {
             targetFOV = Mathf.Lerp(targetFOV, baseFOV, fovChangeSpeed * Time.fixedDeltaTime * 2f);
+        }
+
+        if (speedParticleSystem != null)
+        {
+            float currentSpeed = Mathf.Abs(currentForwardSpeed);
+            
+            if (currentSpeed >= speedThreshold)
+            {
+                float speedFactor = (currentSpeed - speedThreshold) / (maxForwardSpeed * dualPushSpeedMultiplier - speedThreshold);
+                speedFactor = Mathf.Clamp01(speedFactor);
+                
+                float targetRate = originalEmissionRate * speedFactor;
+                currentParticleEmissionRate = Mathf.Lerp(currentParticleEmissionRate, targetRate, particleFadeSpeed * Time.fixedDeltaTime);
+            }
+            else
+            {
+                currentParticleEmissionRate = Mathf.Lerp(currentParticleEmissionRate, 0f, particleFadeSpeed * Time.fixedDeltaTime);
+            }
+            
+            var emission = speedParticleSystem.emission;
+            emission.rateOverTime = currentParticleEmissionRate;
+            
+            if (currentParticleEmissionRate > 0.01f && !speedParticleSystem.isPlaying)
+            {
+                speedParticleSystem.Play();
+            }
+            else if (currentParticleEmissionRate <= 0.01f && speedParticleSystem.isPlaying)
+            {
+                speedParticleSystem.Stop();
+            }
         }
     }
 
@@ -381,6 +423,14 @@ public class WheelChairController : MonoBehaviour
             resetPromptText.alpha = 0f;
             showPromptDelayed = false;
             promptDelayTimer = 0f;
+        }
+
+        if (speedParticleSystem != null)
+        {
+            var emission = speedParticleSystem.emission;
+            emission.rateOverTime = 0f;
+            currentParticleEmissionRate = 0f;
+            speedParticleSystem.Stop();
         }
     }
 }
