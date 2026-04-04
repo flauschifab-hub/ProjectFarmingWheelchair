@@ -23,7 +23,8 @@ public class ReadyManager : MonoBehaviour
     {
         startTime = Time.time;
         originalVolume = audioSource.volume;
-        audioSource.volume = 0f;
+        audioSource.volume = originalVolume;
+        
         StartCoroutine(TimedSequence());
     }
     

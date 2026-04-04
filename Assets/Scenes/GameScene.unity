@@ -365,7 +365,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 5346646423847309296}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5993d6404766725409397e5b65d62999, type: 3}
   m_Name: 
@@ -401,11 +401,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scriptToEnable: {fileID: 91591368}
   audioSource: {fileID: 1442343222}
-  clipAt10ms: {fileID: 0}
-  clipAt2s: {fileID: 0}
-  clipAt3s: {fileID: 0}
-  clipAt4s: {fileID: 0}
-  clipAt5s: {fileID: 0}
+  clipAt10ms: {fileID: 8300000, guid: ec6b61d90aa019347849a22224b6d767, type: 3}
+  clipAt2s: {fileID: 8300000, guid: 2907f6028b7248c48ad6dab188be6185, type: 3}
+  clipAt3s: {fileID: 8300000, guid: d2ebe8e9858e4d24ca05ae4991cdc74a, type: 3}
+  clipAt4s: {fileID: 8300000, guid: 15d8790011bba244e84f8936fd084aa9, type: 3}
+  clipAt5s: {fileID: 8300000, guid: 6cb2e9b54b95a6147aba9024024cd85f, type: 3}
   loopMusic: {fileID: 8300000, guid: 2dc84f467e3e47440ab1914b214e68ed, type: 3}
   fadeInDuration: 3.5
 --- !u!4 &230227646
@@ -1514,6 +1514,11 @@ PrefabInstance:
       propertyPath: leftWheel
       value: 
       objectReference: {fileID: 2104728481}
+    - target: {fileID: 6854073584088580085, guid: 728fb051d784a5e48814f3bf8b47c0a4,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6854073584088580085, guid: 728fb051d784a5e48814f3bf8b47c0a4,
         type: 3}
       propertyPath: rightWheel
