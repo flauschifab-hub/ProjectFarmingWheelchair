@@ -11,6 +11,29 @@ public class WheelChairController : MonoBehaviour
     public float turnLerpSpeed = 5f; 
     public float driftFactor = 0.1f;
     public float maxForwardHoldTime = 3f;
+    public Transform forwardDirectionReference;
+
+    [Header("Braking")]
+    public float brakeDeceleration = 8f;
+    public float reverseSpeed = -3f;
+    public float reverseAcceleration = 5f;
+
+    [Header("Dual Push Stacking")]
+    public float dualPushSpeedMultiplier = 2f;
+    public float dualPushAccelerationMultiplier = 3f;
+
+    [Header("Particle Effects")]
+    public ParticleSystem speedParticleSystem;
+    public float speedThreshold = 8f;
+    public float particleFadeSpeed = 2f;
+    private float currentParticleEmissionRate = 0f;
+    private float originalEmissionRate = 0f;
+
+    [Header("Wheel Rotation")]
+    public Transform leftWheel;
+    public Transform rightWheel;
+    public float wheelRotationSpeed = 360f;
+    public float reverseRotationMultiplier = -1f;
 
     [Header("Collision")]
     public Rigidbody cameraRigidbody; 
@@ -50,12 +73,11 @@ public class WheelChairController : MonoBehaviour
 
     private Rigidbody rb;
     private float currentForwardSpeed = 0f;
-    private float targetTurnDirection = 0f; 
     private float currentTurnSpeed = 0f;
     private float forwardHoldTimer = 0f;
     private bool controlEnabled = true;
-
     private bool cameraThrown = false;
+    private float wheelRotationAccumulator = 0f;
 
     void Start()
     {
@@ -88,6 +110,13 @@ public class WheelChairController : MonoBehaviour
             resetPromptText.text = "Press R to Reset Camera";
             resetPromptText.alpha = 0f;
         }
+
+        if (speedParticleSystem != null)
+        {
+            originalEmissionRate = speedParticleSystem.emission.rateOverTime.constant;
+            var emission = speedParticleSystem.emission;
+            emission.rateOverTime = 0f;
+        }
     }
 
     void FixedUpdate()
@@ -96,60 +125,147 @@ public class WheelChairController : MonoBehaviour
 
         bool pressingLeft = Input.GetKey(KeyCode.A);
         bool pressingRight = Input.GetKey(KeyCode.D);
+        bool pressingBoth = pressingLeft && pressingRight;
+        bool pressingOnlyOne = (pressingLeft || pressingRight) && !pressingBoth;
+        bool pressingBrake = Input.GetKey(KeyCode.S);
 
-        if (pressingLeft && pressingRight)
+        Vector3 forwardDir = forwardDirectionReference != null ? forwardDirectionReference.forward : transform.forward;
+
+        if (pressingBrake)
+        {
+            forwardHoldTimer = 0f;
+            currentTurnSpeed = 0f;
+            
+            if (currentForwardSpeed > 0)
+            {
+                currentForwardSpeed -= brakeDeceleration * Time.fixedDeltaTime;
+                if (currentForwardSpeed < 0) currentForwardSpeed = 0;
+            }
+            else if (currentForwardSpeed <= 0 && pressingBrake)
+            {
+                currentForwardSpeed -= reverseAcceleration * Time.fixedDeltaTime;
+                currentForwardSpeed = Mathf.Clamp(currentForwardSpeed, reverseSpeed, 0);
+            }
+        }
+        else if (pressingBoth)
         {
             forwardHoldTimer += Time.fixedDeltaTime;
+            
+            float currentAcceleration = forwardAcceleration * dualPushAccelerationMultiplier;
+            
             if (forwardHoldTimer <= maxForwardHoldTime)
             {
-                currentForwardSpeed += forwardAcceleration * Time.fixedDeltaTime;
-                currentForwardSpeed = Mathf.Clamp(currentForwardSpeed, 0f, maxForwardSpeed);
+                currentForwardSpeed += currentAcceleration * Time.fixedDeltaTime;
             }
             else
             {
                 currentForwardSpeed -= deceleration * Time.fixedDeltaTime;
                 if (currentForwardSpeed < 0f) currentForwardSpeed = 0f;
             }
-            targetTurnDirection = 0f;
+            currentTurnSpeed = 0f;
+        }
+        else if (pressingOnlyOne)
+        {
+            forwardHoldTimer = 0f;
+            
+            if (pressingLeft)
+            {
+                currentTurnSpeed = -turnSpeed;
+            }
+            else if (pressingRight)
+            {
+                currentTurnSpeed = turnSpeed;
+            }
+            
+            currentForwardSpeed -= deceleration * Time.fixedDeltaTime;
+            if (currentForwardSpeed < 0f) currentForwardSpeed = 0f;
         }
         else
         {
-            forwardHoldTimer = 0f; 
-            if (pressingLeft && !pressingRight)
+            forwardHoldTimer = 0f;
+            currentTurnSpeed = Mathf.Lerp(currentTurnSpeed, 0f, turnLerpSpeed * Time.fixedDeltaTime);
+            if (currentForwardSpeed > 0)
             {
-                targetTurnDirection = -1f;
-                currentForwardSpeed *= 0.95f; 
-            }
-            else if (pressingRight && !pressingLeft)
-            {
-                targetTurnDirection = 1f;
-                currentForwardSpeed *= 0.95f;
-            }
-            else
-            {
-                targetTurnDirection = 0f;
                 currentForwardSpeed -= deceleration * Time.fixedDeltaTime;
                 if (currentForwardSpeed < 0f) currentForwardSpeed = 0f;
             }
         }
 
-        float targetTurnSpeed = targetTurnDirection * turnSpeed;
-        currentTurnSpeed = Mathf.Lerp(currentTurnSpeed, targetTurnSpeed, turnLerpSpeed * Time.fixedDeltaTime);
-        rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, currentTurnSpeed * Time.fixedDeltaTime, 0f));
+        float wheelRotationThisFrame = currentForwardSpeed * wheelRotationSpeed * Time.fixedDeltaTime;
+        if (currentForwardSpeed < 0)
+        {
+            wheelRotationThisFrame *= reverseRotationMultiplier;
+        }
+        
+        wheelRotationAccumulator += wheelRotationThisFrame;
+        
+        if (leftWheel != null)
+        {
+            float turnInfluence = 0f;
+            if (currentTurnSpeed < 0) turnInfluence = -15f;
+            if (currentTurnSpeed > 0) turnInfluence = 15f;
+            
+            leftWheel.localRotation = Quaternion.Euler(0, turnInfluence, wheelRotationAccumulator);
+        }
+        
+        if (rightWheel != null)
+        {
+            float turnInfluence = 0f;
+            if (currentTurnSpeed < 0) turnInfluence = -15f;
+            if (currentTurnSpeed > 0) turnInfluence = 15f;
+            
+            rightWheel.localRotation = Quaternion.Euler(0, turnInfluence, -wheelRotationAccumulator);
+        }
 
-        Vector3 forwardVelocity = transform.forward * currentForwardSpeed;
-        Vector3 lateralVelocity = transform.right * Vector3.Dot(rb.velocity, transform.right) * driftFactor;
+        if (Mathf.Abs(currentTurnSpeed) > 0.01f && forwardDirectionReference != null)
+        {
+            transform.RotateAround(forwardDirectionReference.position, Vector3.up, currentTurnSpeed * Time.fixedDeltaTime);
+        }
+
+        Vector3 forwardVelocity = forwardDir * currentForwardSpeed;
+        Vector3 rightDir = Vector3.Cross(Vector3.up, forwardDir).normalized;
+        Vector3 lateralVelocity = rightDir * Vector3.Dot(rb.velocity, rightDir) * driftFactor;
         rb.velocity = new Vector3(forwardVelocity.x + lateralVelocity.x, rb.velocity.y, forwardVelocity.z + lateralVelocity.z);
 
-        float speedNormalized = currentForwardSpeed / maxForwardSpeed;
+        float speedNormalized = Mathf.Clamp01(Mathf.Abs(currentForwardSpeed) / maxForwardSpeed);
         
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+        if (pressingLeft || pressingRight || pressingBrake)
         {
             targetFOV = Mathf.Lerp(baseFOV, maxFOV, speedNormalized);
         }
         else
         {
             targetFOV = Mathf.Lerp(targetFOV, baseFOV, fovChangeSpeed * Time.fixedDeltaTime * 2f);
+        }
+
+        if (speedParticleSystem != null)
+        {
+            float currentSpeed = Mathf.Abs(currentForwardSpeed);
+            
+            if (currentSpeed >= speedThreshold)
+            {
+                float speedFactor = (currentSpeed - speedThreshold) / (maxForwardSpeed * dualPushSpeedMultiplier - speedThreshold);
+                speedFactor = Mathf.Clamp01(speedFactor);
+                
+                float targetRate = originalEmissionRate * speedFactor;
+                currentParticleEmissionRate = Mathf.Lerp(currentParticleEmissionRate, targetRate, particleFadeSpeed * Time.fixedDeltaTime);
+            }
+            else
+            {
+                currentParticleEmissionRate = Mathf.Lerp(currentParticleEmissionRate, 0f, particleFadeSpeed * Time.fixedDeltaTime);
+            }
+            
+            var emission = speedParticleSystem.emission;
+            emission.rateOverTime = currentParticleEmissionRate;
+            
+            if (currentParticleEmissionRate > 0.01f && !speedParticleSystem.isPlaying)
+            {
+                speedParticleSystem.Play();
+            }
+            else if (currentParticleEmissionRate <= 0.01f && speedParticleSystem.isPlaying)
+            {
+                speedParticleSystem.Stop();
+            }
         }
     }
 
@@ -201,9 +317,9 @@ public class WheelChairController : MonoBehaviour
         }
 
         bool isTurning = Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D);
-        float currentSpeedNormalized = currentForwardSpeed / maxForwardSpeed;
+        float currentSpeedNormalized = Mathf.Clamp01(Mathf.Abs(currentForwardSpeed) / maxForwardSpeed);
         
-        if (isTurning && currentSpeedNormalized > 0.1f)
+        if (isTurning && currentSpeedNormalized > 0.1f && currentForwardSpeed > 0)
         {
             float turnDirection = 0f;
             if (Input.GetKey(KeyCode.A)) turnDirection = -1f;
@@ -307,6 +423,14 @@ public class WheelChairController : MonoBehaviour
             resetPromptText.alpha = 0f;
             showPromptDelayed = false;
             promptDelayTimer = 0f;
+        }
+
+        if (speedParticleSystem != null)
+        {
+            var emission = speedParticleSystem.emission;
+            emission.rateOverTime = 0f;
+            currentParticleEmissionRate = 0f;
+            speedParticleSystem.Stop();
         }
     }
 }
