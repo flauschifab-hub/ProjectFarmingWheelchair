@@ -41,6 +41,7 @@ public class WheelChairController : MonoBehaviour
     public float flingMultiplier = 2f;           
     public float rotationTorque = 5f;
     public GameObject legs;
+    public GameObject legsHiddenAlternate; // New GameObject to enable when legs are hidden
 
     [Header("Camera Look")]
     public float lookSensitivity = 2f;
@@ -124,6 +125,9 @@ public class WheelChairController : MonoBehaviour
 
         if (legs != null)
             legs.SetActive(true);
+        
+        if (legsHiddenAlternate != null)
+            legsHiddenAlternate.SetActive(false);
     }
 
     void FixedUpdate()
@@ -407,6 +411,9 @@ public class WheelChairController : MonoBehaviour
 
                 if (legs != null)
                     legs.SetActive(false);
+                
+                if (legsHiddenAlternate != null)
+                    legsHiddenAlternate.SetActive(true);
 
                 if (wheelchairCollider != null)
                     Physics.IgnoreCollision(cameraRigidbody.GetComponent<Collider>(), wheelchairCollider, true);
@@ -462,6 +469,9 @@ public class WheelChairController : MonoBehaviour
 
         if (legs != null)
             legs.SetActive(true);
+        
+        if (legsHiddenAlternate != null)
+            legsHiddenAlternate.SetActive(false);
 
         if (cameraRigidbody != null && wheelchairCollider != null)
         {
