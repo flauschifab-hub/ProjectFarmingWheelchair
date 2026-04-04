@@ -2206,8 +2206,8 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 8177bfcf861dc0548ad824544fa9ca99, type: 3}
-  m_Resource: {fileID: 8300000, guid: 8177bfcf861dc0548ad824544fa9ca99, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 2dc84f467e3e47440ab1914b214e68ed, type: 3}
+  m_Resource: {fileID: 8300000, guid: 2dc84f467e3e47440ab1914b214e68ed, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
@@ -4780,6 +4780,15 @@ MonoBehaviour:
   rotationTorque: 5
   lookSensitivity: 2
   cameraResetSpeed: 5
+  playerCamera: {fileID: 0}
+  baseFOV: 60
+  maxFOV: 80
+  fovChangeSpeed: 5
+  swayAmount: 2
+  swaySpeed: 3
+  resetPromptText: {fileID: 0}
+  promptFadeSpeed: 3
+  promptDelayTime: 2
 --- !u!114 &500675257
 MonoBehaviour:
   m_ObjectHideFlags: 0
