@@ -20,6 +20,7 @@ public class Collecter : MonoBehaviour
 
     public void AddWeed()
     {
+        Debug.Log("Weed wurde geaddet");
         package++;
         UpdateScoreText();
         
@@ -31,7 +32,7 @@ public class Collecter : MonoBehaviour
         timer.AddTime(30f);
     }
 
-    private void UpdateScoreText()
+    public void UpdateScoreText()
     {
         if (WeedText != null)
         {
@@ -39,14 +40,14 @@ public class Collecter : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Weed"))
-        {
-            AddWeed();
-            Destroy(other.gameObject);
-        }
-    }
+  //  private void OnTriggerEnter(Collider other)
+   // {
+        //if (other.CompareTag("Weed"))
+        //{
+         //   AddWeed();
+         //   Destroy(other.gameObject);
+       // }
+  //  }
     
     public int GetCurrentScore()
     {

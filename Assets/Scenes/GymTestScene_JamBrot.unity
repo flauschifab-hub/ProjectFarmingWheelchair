@@ -4824,6 +4824,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WeedText: {fileID: 1610943299}
   timer: {fileID: 694124528}
+  scoreboard: {fileID: 0}
 --- !u!114 &500675258
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10565,6 +10566,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1799763094}
   - component: {fileID: 1799763095}
+  - component: {fileID: 1799763096}
   m_Layer: 0
   m_Name: Grow
   m_TagString: Grow
@@ -10601,6 +10603,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isPlanted: 0
+--- !u!65 &1799763096
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1799763093}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1806960650
 GameObject:
   m_ObjectHideFlags: 0
