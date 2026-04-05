@@ -5436,6 +5436,7 @@ GameObject:
   - component: {fileID: 2129965156}
   - component: {fileID: 2129965155}
   - component: {fileID: 2129965158}
+  - component: {fileID: 2129965159}
   m_Layer: 5
   m_Name: Credits
   m_TagString: Untagged
@@ -5571,6 +5572,28 @@ MonoBehaviour:
   panel: {fileID: 569888672}
   button: {fileID: 2129965155}
   fadeDuration: 0.2
+--- !u!95 &2129965159
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2129965153}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: fe81fe928509540438a7a8c66fa3d128, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
