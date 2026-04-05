@@ -9,9 +9,7 @@ public class ReadyManager : MonoBehaviour
     
     [Header("UI Fade")]
     public CanvasGroup fadeCanvasGroup;
-    public float fadeInDuration = 1f;
-    public float fadeOutDuration = 1f;
-    public float displayDuration = 2f;
+    public float fadeOutDuration = 1f; 
     
     [Header("Audio Settings")]
     public AudioSource audioSource;
@@ -32,7 +30,7 @@ public class ReadyManager : MonoBehaviour
         
         if (fadeCanvasGroup != null)
         {
-            fadeCanvasGroup.alpha = 0f;
+            fadeCanvasGroup.alpha = 1f;
             fadeCanvasGroup.gameObject.SetActive(true);
         }
         
@@ -43,9 +41,7 @@ public class ReadyManager : MonoBehaviour
     {
         if (fadeCanvasGroup != null)
         {
-            yield return StartCoroutine(FadeCanvas(1f, 0f, fadeInDuration));
-            yield return new WaitForSeconds(displayDuration);
-            yield return StartCoroutine(FadeCanvas(0f, 1f, fadeOutDuration));
+            yield return StartCoroutine(FadeCanvas(1f, 0f, fadeOutDuration));
             
             if (fadeCanvasGroup != null)
             {
@@ -78,6 +74,7 @@ public class ReadyManager : MonoBehaviour
         }
         
         yield return new WaitForSeconds(1.0f);
+        
         if (audioSource != null && clipAt5s != null)
         {
             audioSource.PlayOneShot(clipAt5s);
