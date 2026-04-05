@@ -32,12 +32,41 @@ public class PanelToggler : MonoBehaviour
             Debug.LogWarning("Panel or Button not assigned!");
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape) && panel != null && panel.activeSelf)
+        {
+            if (activeCoroutine != null)
+                StopCoroutine(activeCoroutine);
+            
+            activeCoroutine = StartCoroutine(FadeOutPanel());
+        }
+    }
+
     private void TogglePanel()
     {
         if (activeCoroutine != null)
             StopCoroutine(activeCoroutine);
         
         activeCoroutine = StartCoroutine(FadePanel());
+    }
+
+    private IEnumerator FadeOutPanel()
+    {
+        float elapsed = 0f;
+        float startAlpha = canvasGroup.alpha;
+        
+        while (elapsed < fadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / fadeDuration;
+            canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, t);
+            yield return null;
+        }
+        
+        canvasGroup.alpha = 0f;
+        panel.SetActive(false);
+        activeCoroutine = null;
     }
 
     private IEnumerator FadePanel()
