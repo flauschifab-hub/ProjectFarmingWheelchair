@@ -14,6 +14,7 @@ public class CameraReattachment : MonoBehaviour
     public KeyCode reattachKey = KeyCode.E;
     public float checkRadius = 0.5f; 
     public bool requireGroundContact = true;
+    public float reattachRange = 3f;
     
     [Header("UI Text")]
     public TextMeshProUGUI reattachText;
@@ -52,8 +53,10 @@ public class CameraReattachment : MonoBehaviour
             
             if (isDetached)
             {
+                float distanceToWheelchair = Vector3.Distance(cameraObject.transform.position, cameraPos.position);
+                bool isInRange = distanceToWheelchair <= reattachRange;
                 bool isOnGround = !requireGroundContact || IsCameraTouchingGround();
-                canReattach = isOnGround;
+                canReattach = isInRange && isOnGround;
                 
                 if (canReattach && Input.GetKeyDown(reattachKey))
                 {
@@ -169,6 +172,12 @@ public class CameraReattachment : MonoBehaviour
             
             Gizmos.color = Color.blue;
             Gizmos.DrawRay(cameraObject.transform.position, Vector3.down * 0.6f);
+        }
+        
+        if (cameraPos != null)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(cameraPos.position, reattachRange);
         }
     }
 }
