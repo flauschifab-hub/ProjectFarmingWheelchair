@@ -1,4 +1,6 @@
 using UnityEngine;
+using TMPro;
+using System.Collections;
 
 public class CameraReattachment : MonoBehaviour
 {
@@ -13,7 +15,14 @@ public class CameraReattachment : MonoBehaviour
     public float checkRadius = 0.5f; 
     public bool requireGroundContact = true;
     
+    [Header("UI Text")]
+    public TextMeshProUGUI reattachText;
+    public float fadeDuration = 0.5f;
+    public string promptMessage = "Press E to reattach camera";
+    
     private Rigidbody cameraRigidbody;
+    private Coroutine currentFadeRoutine;
+    private bool wasInRange = false;
     
     void Start()
     {
@@ -24,20 +33,80 @@ public class CameraReattachment : MonoBehaviour
         {
             wheelchairController = cameraPos.GetComponentInParent<WheelChairController>();
         }
+        
+        if (reattachText != null)
+        {
+            reattachText.text = promptMessage;
+            Color color = reattachText.color;
+            color.a = 0f;
+            reattachText.color = color;
+        }
     }
     
     void Update()
     {
-        if (cameraObject != null && cameraPos != null && 
-            cameraObject.transform.parent != cameraPos)
+        if (cameraObject != null && cameraPos != null)
         {
-            bool isOnGround = !requireGroundContact || IsCameraTouchingGround();
+            bool isDetached = cameraObject.transform.parent != cameraPos;
+            bool canReattach = false;
             
-            if (Input.GetKeyDown(reattachKey) && isOnGround)
+            if (isDetached)
             {
-                ReattachCamera();
+                bool isOnGround = !requireGroundContact || IsCameraTouchingGround();
+                canReattach = isOnGround;
+                
+                if (canReattach && Input.GetKeyDown(reattachKey))
+                {
+                    ReattachCamera();
+                }
             }
+            
+            UpdateTextVisibility(isDetached && canReattach);
         }
+        else
+        {
+            UpdateTextVisibility(false);
+        }
+    }
+    
+    void UpdateTextVisibility(bool show)
+    {
+        if (reattachText == null) return;
+        
+        if (show && !wasInRange)
+        {
+            if (currentFadeRoutine != null)
+                StopCoroutine(currentFadeRoutine);
+            currentFadeRoutine = StartCoroutine(FadeText(0f, 1f));
+            wasInRange = true;
+        }
+        else if (!show && wasInRange)
+        {
+            if (currentFadeRoutine != null)
+                StopCoroutine(currentFadeRoutine);
+            currentFadeRoutine = StartCoroutine(FadeText(1f, 0f));
+            wasInRange = false;
+        }
+    }
+    
+    IEnumerator FadeText(float startAlpha, float endAlpha)
+    {
+        if (reattachText == null) yield break;
+        
+        Color color = reattachText.color;
+        float elapsed = 0f;
+        
+        while (elapsed < fadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / fadeDuration;
+            color.a = Mathf.Lerp(startAlpha, endAlpha, t);
+            reattachText.color = color;
+            yield return null;
+        }
+        
+        color.a = endAlpha;
+        reattachText.color = color;
     }
     
     bool IsCameraTouchingGround()
@@ -86,9 +155,12 @@ public class CameraReattachment : MonoBehaviour
         if (wheelchairController != null)
         {
             wheelchairController.ReenableControl();
-        }     
+        }
+        
+        UpdateTextVisibility(false);
     }
-        void OnDrawGizmosSelected()
+    
+    void OnDrawGizmosSelected()
     {
         if (cameraObject != null && requireGroundContact)
         {

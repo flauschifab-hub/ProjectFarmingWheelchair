@@ -43,7 +43,11 @@ public class SettingsMenu : MonoBehaviour
     [Header("Keys")]
     public KeyCode toggleKey = KeyCode.Escape;
 
-
+    [Header("Muffle Audio")]
+    public AudioReverbFilter reverbFilter;
+    public float menuVolumeMultiplier = 0.3f;
+    private float originalVolume;
+    private bool wasMuffled = false;
 
     private const float DEFAULT_LOOK_SENSITIVITY = 2f; 
     private const float MIN_SLIDER_VALUE = 0.1f;
@@ -61,6 +65,13 @@ public class SettingsMenu : MonoBehaviour
         {
             settingsPanel.SetActive(false);
         }
+        
+        if (reverbFilter == null)
+        {
+            reverbFilter = FindObjectOfType<AudioReverbFilter>();
+        }
+        
+        originalVolume = AudioListener.volume;
     }
 
     void Start()
@@ -269,6 +280,8 @@ public class SettingsMenu : MonoBehaviour
         
         SaveSettings();
         
+        SetAudioMuffled(false);
+        
         Debug.Log("=== ForceCloseMenu() completed ===");
         Debug.Log("Menu closed. Settings panel active: " + (settingsPanel != null ? settingsPanel.activeSelf.ToString() : "null"));
     }
@@ -285,6 +298,7 @@ public class SettingsMenu : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         Time.timeScale = 1f;
+        SetAudioMuffled(false);
     }
 
     void HideAllSubPanels()
@@ -386,6 +400,8 @@ public class SettingsMenu : MonoBehaviour
         Cursor.visible = true;
 
         Time.timeScale = 0f;
+        
+        SetAudioMuffled(true);
     }
 
     public void ResumeGame()
@@ -402,6 +418,28 @@ public class SettingsMenu : MonoBehaviour
         Time.timeScale = 1f;
         
         SaveSettings();
+        
+        SetAudioMuffled(false);
+    }
+    
+    void SetAudioMuffled(bool muffled)
+    {
+        if (muffled == wasMuffled) return;
+        wasMuffled = muffled;
+        
+        if (reverbFilter != null)
+        {
+            reverbFilter.enabled = muffled;
+        }
+        
+        if (muffled)
+        {
+            AudioListener.volume = originalVolume * menuVolumeMultiplier;
+        }
+        else
+        {
+            AudioListener.volume = originalVolume;
+        }
     }
 
     #region Video Settings
@@ -516,12 +554,18 @@ public class SettingsMenu : MonoBehaviour
     void SetMasterVolume(float value)
     {
         AudioListener.volume = value;
+        originalVolume = value;
         
         if (volumeValueText != null)
             volumeValueText.text = Mathf.RoundToInt(value * 100).ToString();
         
         if (volumeInputField != null)
             volumeInputField.text = Mathf.RoundToInt(value * 100).ToString();
+        
+        if (isOpen)
+        {
+            AudioListener.volume = originalVolume * menuVolumeMultiplier;
+        }
     }
 
     void OnVolumeInputChanged(string input)
@@ -541,12 +585,18 @@ public class SettingsMenu : MonoBehaviour
                 masterVolumeSlider.value = volumeValue;
             
             AudioListener.volume = volumeValue;
+            originalVolume = volumeValue;
             
             if (volumeValueText != null)
                 volumeValueText.text = volumePercent.ToString();
             
             if (volumeInputField != null)
                 volumeInputField.text = volumePercent.ToString();
+            
+            if (isOpen)
+            {
+                AudioListener.volume = originalVolume * menuVolumeMultiplier;
+            }
         }
         else
         {
@@ -663,7 +713,7 @@ public class SettingsMenu : MonoBehaviour
     #region Save/Load Settings
     void SaveSettings()
     {
-        PlayerPrefs.SetFloat("MasterVolume", AudioListener.volume);
+        PlayerPrefs.SetFloat("MasterVolume", originalVolume);
         
         if (wheelchairController != null)
         {
