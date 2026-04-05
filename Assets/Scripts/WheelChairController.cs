@@ -41,7 +41,7 @@ public class WheelChairController : MonoBehaviour
     public float flingMultiplier = 2f;           
     public float rotationTorque = 5f;
     public GameObject legs;
-    public GameObject legsHiddenAlternate; // New GameObject to enable when legs are hidden
+    public GameObject legsHiddenAlternate;
 
     [Header("Camera Look")]
     public float lookSensitivity = 2f;
@@ -113,7 +113,7 @@ public class WheelChairController : MonoBehaviour
         if (resetPromptText != null)
         {
             resetPromptText.text = "Press R to Reset Camera";
-            resetPromptText.alpha = 0f;
+            resetPromptText.gameObject.SetActive(false);
         }
 
         if (speedParticleSystem != null)
@@ -363,16 +363,15 @@ public class WheelChairController : MonoBehaviour
                 if (promptDelayTimer >= promptDelayTime)
                 {
                     showPromptDelayed = true;
+                    resetPromptText.gameObject.SetActive(true);
                 }
             }
             else if (!cameraThrown || isResettingCamera)
             {
                 promptDelayTimer = 0f;
                 showPromptDelayed = false;
+                resetPromptText.gameObject.SetActive(false);
             }
-
-            float targetAlpha = (cameraThrown && !isResettingCamera && showPromptDelayed) ? 1f : 0f;
-            resetPromptText.alpha = Mathf.Lerp(resetPromptText.alpha, targetAlpha, promptFadeSpeed * Time.deltaTime);
         }
     }
 
@@ -454,7 +453,7 @@ public class WheelChairController : MonoBehaviour
 
         if (resetPromptText != null)
         {
-            resetPromptText.alpha = 0f;
+            resetPromptText.gameObject.SetActive(false);
             showPromptDelayed = false;
             promptDelayTimer = 0f;
         }
