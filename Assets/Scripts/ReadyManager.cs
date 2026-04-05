@@ -1,10 +1,17 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ReadyManager : MonoBehaviour
 {
     [Header("Script to Enable")]
     public MonoBehaviour scriptToEnable;
+    
+    [Header("UI Fade")]
+    public CanvasGroup fadeCanvasGroup;
+    public float fadeInDuration = 1f;
+    public float fadeOutDuration = 1f;
+    public float displayDuration = 2f;
     
     [Header("Audio Settings")]
     public AudioSource audioSource;
@@ -14,22 +21,38 @@ public class ReadyManager : MonoBehaviour
     public AudioClip clipAt4s;
     public AudioClip clipAt5s;
     public AudioClip loopMusic;
-    public float fadeInDuration = 1.5f;
+    public float musicFadeInDuration = 1.5f;
     
-    private float startTime;
     private float originalVolume;
     
     void Start()
     {
-        startTime = Time.time;
         originalVolume = audioSource.volume;
         audioSource.volume = originalVolume;
+        
+        if (fadeCanvasGroup != null)
+        {
+            fadeCanvasGroup.alpha = 0f;
+            fadeCanvasGroup.gameObject.SetActive(true);
+        }
         
         StartCoroutine(TimedSequence());
     }
     
     IEnumerator TimedSequence()
     {
+        if (fadeCanvasGroup != null)
+        {
+            yield return StartCoroutine(FadeCanvas(1f, 0f, fadeInDuration));
+            yield return new WaitForSeconds(displayDuration);
+            yield return StartCoroutine(FadeCanvas(0f, 1f, fadeOutDuration));
+            
+            if (fadeCanvasGroup != null)
+            {
+                fadeCanvasGroup.gameObject.SetActive(false);
+            }
+        }
+        
         yield return new WaitForSeconds(0.01f);
         if (audioSource != null && clipAt10ms != null)
         {
@@ -72,14 +95,31 @@ public class ReadyManager : MonoBehaviour
             audioSource.Play();
             
             float elapsedTime = 0f;
-            while (elapsedTime < fadeInDuration)
+            while (elapsedTime < musicFadeInDuration)
             {
                 elapsedTime += Time.deltaTime;
-                audioSource.volume = Mathf.Lerp(0f, originalVolume, elapsedTime / fadeInDuration);
+                audioSource.volume = Mathf.Lerp(0f, originalVolume, elapsedTime / musicFadeInDuration);
                 yield return null;
             }
             
             audioSource.volume = originalVolume;
         }
+    }
+    
+    IEnumerator FadeCanvas(float startAlpha, float endAlpha, float duration)
+    {
+        if (fadeCanvasGroup == null) yield break;
+        
+        float elapsed = 0f;
+        
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            fadeCanvasGroup.alpha = Mathf.Lerp(startAlpha, endAlpha, t);
+            yield return null;
+        }
+        
+        fadeCanvasGroup.alpha = endAlpha;
     }
 }

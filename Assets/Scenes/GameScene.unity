@@ -277,7 +277,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &100446949
 RectTransform:
   m_ObjectHideFlags: 0
@@ -359,6 +359,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &176709128 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4723985230382611280, guid: 33b35481ca355ac409bb9fd1975676c7,
+    type: 3}
+  m_PrefabInstance: {fileID: 7584796213842164677}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &202963603 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5715723128694335013, guid: 33b35481ca355ac409bb9fd1975676c7,
@@ -404,6 +416,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scriptToEnable: {fileID: 91591368}
+  fadeCanvasGroup: {fileID: 100446950}
+  fadeInDuration: 3.5
+  fadeOutDuration: 1
+  displayDuration: 2
   audioSource: {fileID: 1442343222}
   clipAt10ms: {fileID: 8300000, guid: ec6b61d90aa019347849a22224b6d767, type: 3}
   clipAt2s: {fileID: 8300000, guid: 2907f6028b7248c48ad6dab188be6185, type: 3}
@@ -411,7 +427,7 @@ MonoBehaviour:
   clipAt4s: {fileID: 8300000, guid: 15d8790011bba244e84f8936fd084aa9, type: 3}
   clipAt5s: {fileID: 8300000, guid: 6cb2e9b54b95a6147aba9024024cd85f, type: 3}
   loopMusic: {fileID: 8300000, guid: 2dc84f467e3e47440ab1914b214e68ed, type: 3}
-  fadeInDuration: 3.5
+  musicFadeInDuration: 3.5
 --- !u!4 &230227646
 Transform:
   m_ObjectHideFlags: 0
@@ -456,8 +472,8 @@ MonoBehaviour:
   nameInputField: {fileID: 1279770079}
   currentScoreDisplay: {fileID: 527367769}
   submitButton: {fileID: 837856296}
-  retryButton: {fileID: 0}
-  mainMenuButton: {fileID: 0}
+  retryButton: {fileID: 176709128}
+  mainMenuButton: {fileID: 1576930276}
   gameSceneName: GameScene
   mainMenuSceneName: MainMenu
   audioSource: {fileID: 1442343222}
@@ -2063,6 +2079,18 @@ AudioReverbFilter:
   m_LFReference: 250
   m_ReflectionsDelay: 0
   m_ReverbPreset: 27
+--- !u!114 &1576930276 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1148414807851342770, guid: 33b35481ca355ac409bb9fd1975676c7,
+    type: 3}
+  m_PrefabInstance: {fileID: 7584796213842164677}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1631077931
 GameObject:
   m_ObjectHideFlags: 0
